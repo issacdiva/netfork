@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>有向图示例 - 飞镖靶心节点</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        body {
+            display: flex; /* 使用Flexbox布局 */
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+
+        #left-container {
+            width: 50%; /* 左半部分占一半宽度 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            border-right: 1px solid #ddd; /* 可选：为视觉效果添加边框 */
+            overflow: hidden;
+            background-color: #f5f5f5; /* 统一背景颜色 */
+        }
+
+        #right-container {
+            width: 50%; /* 右半部分占一半宽度 */
+            background-color: #f5f5f5; /* 背景色可选 */
+        }
+
+        #graph {
+            width: 800px;
+            height: 800px;
+            border: 1px solid #ddd;
+            position: relative;
+        }
+
+        .target-circle {
+            width: 48px;
+            height: 48px;
+            background-color: white;
+            border-radius: 50%;
+            border: 6.4px solid black;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+        }
+
+        .target-circle::before {
+            content: '';
+            width: 32px;
+            height: 32px;
+            background-color: white;
+            border-radius: 50%;
+            border: 4.8px solid black;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .target-circle::after {
+            content: '';
+            width: 12.8px;
+            height: 12.8px;
+            background-color: black;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .text-content {
+            text-align: left; /* 文本左对齐 */
+            padding: 200px 0 0 20px; /* 内边距 */
+        }
+
+        .text-content h1 {
+            font-size: 24px; /* 设置主标题字体大小 */
+            font-weight: bold; /* 设置主标题字体加粗 */
+            margin: 0; /* 去除默认外边距 */
+        }
+
+        .text-content h2 {
+            font-size: 18px; /* 设置副标题字体大小 */
+            font-weight: normal; /* 设置副标题字体正常 */
+            margin: 5px 0 0 0; /* 去除顶部和底部的外边距，保持与主标题间隔 */
+        }
+
+        .text-content p {
+            font-size: 14px; /* 设置日期信息字体大小 */
+            color: #666; /* 设置日期信息字体颜色为灰色 */
+            margin: 5px 0 0 0; /* 去除顶部外边距，保持与副标题间隔 */
+        }
+
+        .rectangle-container {
+            margin-left: 20px;
+            width: 800px; /* 设置容器宽度 */
+            height: 180px; /* 设置容器高度 */
+            border: 4px solid orange; /* 设置外边框颜色 */
+            background-color: orange; /* 设置整体背景颜色 */
+            position: relative; /* 使内部元素相对定位 */
+            margin-top: 20px; /* 设置与上方文字的间距 */
+            display: flex; /* 使用flex布局 */
+        }
+
+        .stripe-area {
+            width: 50%; /* 设置区域宽度为容器的一半 */
+            height: 100%; /* 区域高度等于容器高度 */
+            background-image: repeating-linear-gradient(
+                45deg, 
+                white 0px, 
+                white 2px, 
+                orange 2px, 
+                orange 4px
+            ); /* 设置橙色线条背景 */
+        }
+
+        .dot-area {
+            width: 50%; /* 设置区域宽度为容器的一半 */
+            height: 100%; /* 区域高度等于容器高度 */
+            background-image: radial-gradient(
+                white 10%, 
+                orange 10%
+            ); /* 设置橙色斑点背景 */
+            background-size: 24px 24px; /* 斑点大小 */
+        }        
+    </style>
+</head>
+<body>
+    <!-- 左半部分：展示D3图 -->
+    <div id="left-container">
+        <div id="graph">
+            <!-- 中心靶心节点 -->
+            <div class="target-circle"></div>
+        </div>
+    </div>
+    
+    <!-- 右半部分：暂时空白 -->
+    <div id="right-container">
+        <div id="right-container">
+            <div class="text-content">
+                <h1>193.204.0.0/15</h1>
+                <h2>RIPE Routing Information Service</h2>
+                <p>Data from 2014-06-01T07:00:00 to 2014-06-02T03:00:00</p>
+            </div>
+            <div class="rectangle-container">
+                <!-- 添加内部区域 -->
+                <div class="stripe-area"></div>
+                <div class="dot-area"></div>
+            </div>            
+        </div>
+    </div>
+
+    <script>
+        // const leftContainer = document.getElementById('left-container');
+        // const width = leftContainer.clientWidth; // 动态获取容器的宽度
+        // const height = leftContainer.clientHeight; // 动态获取容器的高度        
+        const width = 800, height = 800;
+
+        // 设置节点和边的数据
+        const nodes = [
+            { id: "center", type: "target-circle" }, // 中心节点
+            { id: "node1", type: "circle" },
+            { id: "node2", type: "circle" },
+            { id: "node3", type: "circle" },
+            { id: "node4", type: "circle" },
+            { id: "node5", type: "circle" },
+            { id: "node6", type: "circle" },
+            { id: "node7", type: "circle" },
+            { id: "node8", type: "circle" },
+            { id: "node9", type: "circle" },
+            { id: "node10", type: "circle" },
+            { id: "node11", type: "circle" },
+        ];
+
+        const links = [
+            { source: "center", target: "node1" },
+            { source: "center", target: "node2" },
+            { source: "center", target: "node3" },
+            { source: "center", target: "node4" },
+            { source: "node4", target: "node5" },
+            { source: "node5", target: "node6" },
+            { source: "node3", target: "node7" },
+            { source: "node3", target: "node8" },
+            { source: "node1", target: "node9" },
+            { source: "node10", target: "node7" },
+            { source: "node10", target: "node8" },
+
+        ];
+
+        // 创建SVG元素来绘制边和其他节点
+        const svg = d3.select("#graph")
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .style("position", "absolute");
+
+        svg.append("defs")
+            .html(`
+        <pattern id="orange-dots" patternUnits="userSpaceOnUse" width="10" height="10">
+            <rect width="10" height="10" fill="orange"></rect>
+            <circle cx="5" cy="5" r="2" fill="white"></circle>
+        </pattern>
+
+        <pattern id="orange-stripes" patternUnits="userSpaceOnUse" width="10" height="10">
+            <rect width="10" height="10" fill="orange"></rect>
+            <path d="M 0 0 L 10 10 M -2 2 L 2 -2 M 8 12 L 12 8" stroke="white" stroke-width="2"></path>
+        </pattern>
+        `);
+
+        // 力导向图布局
+        const simulation = d3.forceSimulation(nodes)
+            .force("link", d3.forceLink(links).id(d => d.id).distance(100))
+            .force("charge", d3.forceManyBody().strength(-500))
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        // 创建连接线
+        const link = svg.selectAll(".link")
+            .data(links)
+            .enter().append("line")
+            .attr("class", "link")
+            .attr("stroke", "#000")
+            .attr("stroke-width", 4);
+
+        // 创建节点（不包括靶心节点）
+        const node = svg.selectAll(".node")
+            .data(nodes.filter(d => d.type === "circle")) // 只选择类型为圆圈的节点
+            .enter().append("circle")
+            .attr("r", 18)
+            .attr("fill", d => {
+                if (d.id === 'node7') return 'url(#orange-dots)'; // 节点1使用橘黄色斑点背景
+                if (d.id === 'node8') return 'url(#orange-stripes)'; // 节点2使用橘黄色线条背景
+                return 'gray'; // 其他节点使用灰色填充
+            })
+            .attr("stroke", "black")
+            .attr("stroke-width", 4)
+            .attr("stroke-dasharray", d => d.id === 'node7' || d.id === 'node8' ? "7, 8" : null); // 例如，给 'node2' 和 'node4' 添加虚线边框
+
+        // 假设你已经有了节点和边的基础代码
+        // 获取两个节点的位置
+        const node7 = nodes.find(d => d.id === "node7"); // 替换为你实际节点的ID
+        const node8 = nodes.find(d => d.id === "node8"); // 替换为你实际节点的ID
+
+        // 运行力导向图
+        simulation.on("tick", () => {
+            link
+                .attr("x1", d => d.source.x)
+                .attr("y1", d => d.source.y)
+                .attr("x2", d => d.target.x)
+                .attr("y2", d => d.target.y);
+
+            node
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y);
+
+            // 更新靶心节点的位置
+            d3.select(".target-circle")
+                .style("left", `${nodes[0].x}px`)
+                .style("top", `${nodes[0].y}px`);
+
+            // 计算椭圆的位置和大小
+            const centerX = (node7.x + node8.x) / 2;
+            const centerY = (node7.y + node8.y) / 2;
+            const radiusX = Math.abs(node7.x - node8.x) / 2 + 4; // 添加一些额外的宽度
+            const radiusY = Math.abs(node7.y - node8.y) / 2 + 30; // 添加一些额外的高度
+    
+            // 计算两个节点之间的旋转角度
+            const deltaX = node8.x - node7.x;
+            const deltaY = node8.y - node7.y;
+            let angle = Math.atan2(deltaY, deltaX) * (180 / Math.PI); // 使用 atan2 计算角度并转换为度数
+            angle += 90;
+
+            // 创建或更新椭圆
+            const ellipse = svg.selectAll(".ellipse-wrapper")
+                .data([1]) // 使用一个固定数据项来创建或更新单个椭圆
+                .join("ellipse") // 使用join方法来更新或创建椭圆
+                .attr("class", "ellipse-wrapper")
+                .attr("cx", centerX)
+                .attr("cy", centerY)
+                .attr("rx", radiusX)
+                .attr("ry", radiusY)
+                .attr("transform", `rotate(${angle}, ${centerX}, ${centerY})`) // 应用旋转角度
+                .style("fill", "orange") // 设置椭圆的填充颜色
+                .style("opacity", 0.5) // 设置透明度
+                .style("stroke", "orange") // 设置椭圆的边框颜色
+                .style("stroke-width", 3) // 设置椭圆边框的宽度
+                .lower(); 
+
+        });
+    </script>
+</body>
+</html>
